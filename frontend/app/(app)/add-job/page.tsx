@@ -250,8 +250,8 @@ export default function AddJobPage() {
                                   // Use pasteJD to save the job to the backend with the snippet as description
                                   const savedJob = await api.pasteJD(
                                     job.snippet || "No description available",
-                                    job.title,
-                                    job.company
+                                    job.title?? undefined,
+                                    job.company?? undefined
                                   );
                                   console.log("Saved job to backend:", savedJob);
                                   // Refresh saved jobs
