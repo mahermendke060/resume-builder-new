@@ -422,7 +422,7 @@ function JobIntake({ jobs, setJobs, guard, busy }: any) {
             onClick={() =>
               guard(async () => {
                 const res = await api.discover(query, location || undefined, 5);
-                setJobs((prev: JobOut[]) => [...(res.jobs as JobOut[]), ...prev]);
+                setJobs((prev: JobOut[]) => [...(res.jobs as unknown as JobOut[]), ...prev]);
               })
             }
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
