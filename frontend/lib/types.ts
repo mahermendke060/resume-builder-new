@@ -55,7 +55,8 @@ export interface TailorRunDetail {
   error: string | null;
   started_at: string | null;
   completed_at: string | null;
-  created_at: string;
+  created_at?: string;
+  updated_at?: string;
   variants: Array<{ id: string; content_json: Record<string, any>; provenance_json: any; docx_key: string | null; pdf_key: string | null }>;
   scores: ScoreOut[];
 }
