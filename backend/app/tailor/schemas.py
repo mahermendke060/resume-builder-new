@@ -26,6 +26,8 @@ class VariantOut(BaseModel):
     provenance_json: dict | None
     docx_key: str | None
     pdf_key: str | None
+    created_at: datetime
+    updated_at: datetime
 
 
 class TailorRunOut(BaseModel):
@@ -38,6 +40,8 @@ class TailorRunOut(BaseModel):
     error: str | None
     started_at: datetime | None
     completed_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
 
 
 class TailorRunDetail(TailorRunOut):
