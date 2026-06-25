@@ -53,6 +53,9 @@ export interface TailorRunDetail {
   job_id: string;
   status: string;
   error: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
   variants: Array<{ id: string; content_json: Record<string, any>; provenance_json: any; docx_key: string | null; pdf_key: string | null }>;
   scores: ScoreOut[];
 }
