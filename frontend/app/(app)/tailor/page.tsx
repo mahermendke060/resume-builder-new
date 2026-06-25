@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, getTokens, setTokens } from "@/lib/api";
 import type { JobOut, ResumeOut, TailorRunDetail } from "@/lib/types";
 import { Sparkles, CheckCircle2, AlertCircle, ArrowLeft, FileText, Loader2 } from "lucide-react";
 
-export default function TailorPage() {
+function TailorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialJobId = searchParams.get("jobId");
@@ -481,5 +481,13 @@ function RunResult({
         </button>
       </div>
     </div>
+  );
+}
+
+export default function TailorPage() {
+  return (
+    <Suspense fallback={null}>
+      <TailorPageContent />
+    </Suspense>
   );
 }

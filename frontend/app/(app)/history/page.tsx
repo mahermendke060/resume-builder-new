@@ -120,7 +120,7 @@ export default function HistoryPage() {
                       {job?.company && ` — ${job.company}`}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {formatDate(run.created_at || run.completed_at || "")}
+                      {formatDate((run as any).created_at || (run as any).completed_at || "")}
                     </p>
                   </div>
                 </div>
