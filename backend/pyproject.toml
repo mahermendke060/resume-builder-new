@@ -29,6 +29,7 @@ dependencies = [
     "pytesseract (>=0.3.13,<0.4.0)",
     "pillow (>=12.2.0,<13.0.0)",
     "pdf2image (>=1.17.0,<2.0.0)",
+    "psycopg2-binary (>=2.9.12,<3.0.0)",
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,6 @@
 from functools import lru_cache
-
+import json
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,6 +45,16 @@ class Settings(BaseSettings):
     # --- Rate limiting ---
     rate_limit_enabled: bool = True
     rate_limit_default: str = "240/minute"
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                return json.loads(v)
+            return [i.strip() for i in v.split(",")]
+        return v
 
 
 @lru_cache
