@@ -72,6 +72,8 @@ export const api = {
     request<Tokens>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }, false),
   changePassword: (currentPassword: string, newPassword: string) =>
     request("/auth/change-password", { method: "POST", body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) }),
+  updateProfile: (name: string | null) =>
+    request("/auth/profile", { method: "PUT", body: JSON.stringify({ name }) }),
   me: () => request<any>("/auth/me"),
   grantConsent: () => request("/consents", { method: "POST" }),
   listResumes: () => request<any[]>("/resumes"),

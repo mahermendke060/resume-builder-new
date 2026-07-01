@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.models import User
-from app.auth.schemas import RegisterRequest
+from app.auth.schemas import RegisterRequest, UpdateProfileRequest
 from app.common.errors import AuthError, ConflictError
 from app.common.security import (
     create_token,
@@ -48,6 +48,15 @@ def change_password(db: Session, user: User, current_password: str, new_password
         raise AuthError("Current password is incorrect.")
     
     user.password_hash = hash_password(new_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_profile(db: Session, user: User, payload: UpdateProfileRequest) -> User:
+    if payload.name is not None:
+        user.name = payload.name
     db.add(user)
     db.commit()
     db.refresh(user)

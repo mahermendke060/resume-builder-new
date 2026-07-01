@@ -281,11 +281,12 @@ function RunResult({
   const sanitizeText = (text: string) => {
     if (!text) return text;
     return text
-      .replace(/[\u2014\u2013]/g, "-") // Replace em/en dashes with hyphens
-      .replace(/[\u2018\u2019]/g, "'") // Replace smart single quotes
-      .replace(/[\u201C\u201D]/g, '"') // Replace smart double quotes
+      .replace(/[\u2011\u2012\u2013\u2014\u2015]/g, "-") // Replace all dash variants
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'") // Replace smart single quotes
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"') // Replace smart double quotes
       .replace(/[\u2026]/g, "...") // Replace ellipsis
-      .replace(/[\u00A0]/g, " "); // Replace non-breaking spaces
+      .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ") // Replace all space variants
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); // Remove control characters
   };
 
   const inProgress = !["done", "failed"].includes(run.status);

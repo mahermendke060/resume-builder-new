@@ -1,6 +1,7 @@
 from functools import lru_cache
 import json
-from pydantic import field_validator
+from typing import Any
+from pydantic import field_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +9,10 @@ class Settings(BaseSettings):
     """Application configuration, loaded from environment / .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env", 
+        env_file_encoding="utf-8", 
+        extra="ignore",
+        env_parse_none_str="None"
     )
 
     # --- Core ---
@@ -40,7 +44,7 @@ class Settings(BaseSettings):
     file_store_dir: str = "./var/files"
 
     # --- CORS ---
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+    cors_origins: Any = Field(default=["http://localhost:3000", "http://localhost:3001"])
 
     # --- Rate limiting ---
     rate_limit_enabled: bool = True
@@ -49,12 +53,21 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors(cls, v):
+        if v is None:
+            return ["http://localhost:3000", "http://localhost:3001"]
+        if isinstance(v, list):
+            return v
         if isinstance(v, str):
             v = v.strip()
+            if not v:
+                return ["http://localhost:3000", "http://localhost:3001"]
             if v.startswith("["):
-                return json.loads(v)
-            return [i.strip() for i in v.split(",")]
-        return v
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return ["http://localhost:3000", "http://localhost:3001"]
 
 
 @lru_cache

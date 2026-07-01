@@ -2,47 +2,64 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getTokens, setTokens } from "@/lib/api";
-import { ClipboardList, BriefcaseBusiness, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api, getTokens, setTokens } from "@/lib/api";
+import type { JobOut, TailorRunDetail } from "@/lib/types";
+import { ClipboardList, BriefcaseBusiness, Sparkles, Loader2 } from "lucide-react";
 
 export default function ApplicationsPage() {
   const router = useRouter();
+  const [jobs, setJobs] = useState<JobOut[]>([]);
+  const [tailorRuns, setTailorRuns] = useState<TailorRunDetail[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  function logout() {
-    setTokens(null);
-    router.replace("/login");
+  useEffect(() => {
+    if (!getTokens()) {
+      router.replace("/login");
+      return;
+    }
+
+    async function loadData() {
+      try {
+        const [jobsData, runsData] = await Promise.all([
+          api.listJobs(),
+          api.listTailorRuns(),
+        ]);
+        setJobs(jobsData as JobOut[]);
+        setTailorRuns(runsData as TailorRunDetail[]);
+      } catch (e: any) {
+        if (e.status === 401) {
+          setTokens(null);
+          router.replace("/login");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [router]);
+
+  // Helper to get the latest score for a job
+  const getJobScore = (jobId: string) => {
+    const runsForJob = tailorRuns.filter((run) => run.job_id === jobId && run.scores.length > 0);
+    if (runsForJob.length > 0) {
+      const latestRun = runsForJob[runsForJob.length - 1];
+      return Math.round(latestRun.scores[0].overall);
+    }
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  // Mock data
-  const applications = [
-    {
-      id: 1,
-      title: "Data Scientist",
-      company: "Wisemork",
-      status: "Saved",
-      score: 14,
-      date: "2026-06-20"
-    },
-    {
-      id: 2,
-      title: "Data Analyst / ML Engineer",
-      company: "v4c.ai",
-      location: "Bengaluru",
-      status: "Ready to Apply",
-      score: 25,
-      date: "2026-06-18"
-    },
-  ];
-
-  const statusCounts = {
-    Saved: 2,
-    ReadyToApply: 1,
-    Applied: 0,
-    RecruiterContacted: 0,
-    Interview: 0,
-    Rejected: 0,
-    Offer: 0
-  };
+  // Calculate status counts (all are "Saved" for now since there's no status field in backend)
+  const savedCount = jobs.length;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -56,13 +73,13 @@ export default function ApplicationsPage() {
       {/* Status Counts */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {[
-          { label: "Saved", count: statusCounts.Saved, color: "bg-gray-100 text-gray-700" },
-          { label: "Ready to Apply", count: statusCounts.ReadyToApply, color: "bg-blue-50 text-blue-700" },
-          { label: "Applied", count: statusCounts.Applied, color: "bg-blue-50 text-blue-700" },
-          { label: "Recruiter Contacted", count: statusCounts.RecruiterContacted, color: "bg-purple-50 text-purple-700" },
-          { label: "Interview", count: statusCounts.Interview, color: "bg-yellow-50 text-yellow-700" },
-          { label: "Rejected", count: statusCounts.Rejected, color: "bg-red-50 text-red-700" },
-          { label: "Offer", count: statusCounts.Offer, color: "bg-green-50 text-green-700" },
+          { label: "Saved", count: savedCount, color: "bg-gray-100 text-gray-700" },
+          { label: "Ready to Apply", count: 0, color: "bg-blue-50 text-blue-700" },
+          { label: "Applied", count: 0, color: "bg-blue-50 text-blue-700" },
+          { label: "Recruiter Contacted", count: 0, color: "bg-purple-50 text-purple-700" },
+          { label: "Interview", count: 0, color: "bg-yellow-50 text-yellow-700" },
+          { label: "Rejected", count: 0, color: "bg-red-50 text-red-700" },
+          { label: "Offer", count: 0, color: "bg-green-50 text-green-700" },
         ].map((item, i) => (
           <div key={i} className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-semibold">{item.count}</p>
@@ -91,42 +108,49 @@ export default function ApplicationsPage() {
           </div>
         </div>
 
-        {applications.length > 0 ? (
+        {jobs.length > 0 ? (
           <div className="divide-y">
-            {applications.map((app) => (
-              <div key={app.id} className="px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-secondary">
-                    <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{app.title}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                      {app.company && <span>{app.company}</span>}
-                      {app.company && app.location && <span>·</span>}
-                      {app.location && <span>{app.location}</span>}
+            {jobs.map((job) => {
+              const score = getJobScore(job.id);
+              const scoreColor = score && score >= 70 ? "text-green-500" : score && score >= 50 ? "text-yellow-500" : "text-red-500";
+              
+              return (
+                <div key={job.id} className="px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-secondary">
+                      <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{job.title || "Untitled job"}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                        {job.company && <span>{job.company}</span>}
+                        {job.company && job.location && <span>·</span>}
+                        {job.location && <span>{job.location}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-red-500">{app.score}</p>
-                    <p className="text-xs text-muted-foreground">{app.status}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      {score !== null && (
+                        <p className={`text-lg font-semibold ${scoreColor}`}>{score}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">Saved</p>
+                    </div>
+                    <Link href={`/tailor?jobId=${job.id}`} className="rounded-md border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
+                      View
+                    </Link>
                   </div>
-                  <button className="rounded-md border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
-                    View
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="px-5 py-10 text-center">
-          <p className="text-muted-foreground text-sm">
-            No applications yet. Add a job to get started.
-          </p>
-        </div>
+            <p className="text-muted-foreground text-sm">
+              No applications yet. Add a job to get started.
+            </p>
+          </div>
         )}
       </div>
     </div>

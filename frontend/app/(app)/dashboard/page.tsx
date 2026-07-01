@@ -93,25 +93,6 @@ export default function Dashboard() {
     });
   }
 
-  // Mock data for UI
-  const mockRecentMatches = [
-    {
-      id: 1,
-      title: "Data Scientist",
-      company: "Wisemork",
-      score: 14,
-      status: "Weak match"
-    },
-    {
-      id: 2,
-      title: "Data Analyst / ML Engineer",
-      company: "v4c.ai",
-      location: "Bengaluru",
-      score: 25,
-      status: "Weak match"
-    }
-  ];
-
   return (
     <>
       {initialLoading ? (
@@ -234,35 +215,47 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Matches */}
-          <div className="mt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-4 w-4 flex items-center justify-center">
-                <svg className="h-3.5 w-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <h2 className="text-sm font-semibold tracking-tight">RECENT MATCHES</h2>
-            </div>
-
-            <div className="space-y-2">
-              {mockRecentMatches.map((match) => (
-                <div key={match.id} className="rounded-xl border bg-card p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{match.title}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                      {match.company && <span>{match.company}</span>}
-                      {match.company && match.location && <span>·</span>}
-                      {match.location && <span>{match.location}</span>}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-red-500">{match.score}</p>
-                    <p className="text-xs text-muted-foreground">{match.status}</p>
-                  </div>
+          {jobs.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-4 w-4 flex items-center justify-center">
+                  <svg className="h-3.5 w-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
                 </div>
-              ))}
+                <h2 className="text-sm font-semibold tracking-tight">RECENT MATCHES</h2>
+              </div>
+
+              <div className="space-y-2">
+                {jobs.slice(0, 3).map((job) => {
+                  // Find the latest tailor run for this job
+                  const latestRun = run && run.job_id === job.id ? run : null;
+                  const score = latestRun?.scores?.[0]?.overall;
+                  const scoreColor = score && score >= 70 ? "text-green-500" : score && score >= 50 ? "text-yellow-500" : "text-red-500";
+                  const status = latestRun ? latestRun.status : "No score yet";
+
+                  return (
+                    <div key={job.id} className="rounded-xl border bg-card p-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{job.title || "Untitled job"}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                          {job.company && <span>{job.company}</span>}
+                          {job.company && job.location && <span>·</span>}
+                          {job.location && <span>{job.location}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {score !== undefined && (
+                          <p className={`text-lg font-semibold ${scoreColor}`}>{Math.round(score)}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">{status}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Tailor Section */}
           {structuredResume && jobs.length > 0 && (
@@ -546,11 +539,12 @@ function ResumeVariantDisplay({ variant, score, onDownload }: { variant: any; sc
   const sanitizeText = (text: string) => {
     if (!text) return text;
     return text
-      .replace(/[\u2014\u2013]/g, "-") // Replace em/en dashes with hyphens
-      .replace(/[\u2018\u2019]/g, "'") // Replace smart single quotes
-      .replace(/[\u201C\u201D]/g, '"') // Replace smart double quotes
+      .replace(/[\u2011\u2012\u2013\u2014\u2015]/g, "-") // Replace all dash variants
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'") // Replace smart single quotes
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"') // Replace smart double quotes
       .replace(/[\u2026]/g, "...") // Replace ellipsis
-      .replace(/[\u00A0]/g, " ") // Replace non-breaking spaces
+      .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ") // Replace all space variants
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
   };
 
   return (

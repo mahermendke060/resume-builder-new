@@ -13,6 +13,7 @@ from app.auth.schemas import (
     TokenPair,
     UserOut,
     ChangePasswordRequest,
+    UpdateProfileRequest,
 )
 from app.common.errors import AuthError
 from app.common.security import create_token, decode_token
@@ -67,3 +68,12 @@ def change_password(
         payload.current_password,
         payload.new_password,
     )
+
+
+@router.put("/profile", response_model=UserOut)
+def update_profile(
+    payload: UpdateProfileRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> User:
+    return service.update_profile(db, current_user, payload)
