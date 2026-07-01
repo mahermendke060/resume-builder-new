@@ -193,6 +193,22 @@ function TailorSection({
   // Hide JD when run starts
   const showJD = !run || ["done", "failed"].includes(run.status);
 
+  const handleRetry = async () => {
+    if (!structuredResume || !jobId) return;
+    await guard(async () => {
+      const created = await api.createTailorRun(structuredResume.id, jobId);
+      setRun({
+        id: created.id,
+        resume_id: structuredResume.id,
+        job_id: jobId,
+        status: "queued",
+        error: null,
+        variants: [],
+        scores: [],
+      });
+    });
+  };
+
   return (
     <div className="rounded-xl border bg-card p-6 space-y-6">
       <div>
@@ -261,6 +277,8 @@ function TailorSection({
           selectedVariantIndex={selectedVariantIndex}
           setSelectedVariantIndex={setSelectedVariantIndex}
           onDownload={onDownload}
+          onRetry={handleRetry}
+          busy={busy}
         />
       )}
     </div>
@@ -272,11 +290,15 @@ function RunResult({
   selectedVariantIndex,
   setSelectedVariantIndex,
   onDownload,
+  onRetry,
+  busy,
 }: {
   run: TailorRunDetail;
   selectedVariantIndex: number;
   setSelectedVariantIndex: any;
   onDownload: any;
+  onRetry: any;
+  busy: boolean;
 }) {
   const sanitizeText = (text: string) => {
     if (!text) return text;
@@ -286,7 +308,8 @@ function RunResult({
       .replace(/[\u201C\u201D\u201E\u201F]/g, '"') // Replace smart double quotes
       .replace(/[\u2026]/g, "...") // Replace ellipsis
       .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ") // Replace all space variants
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); // Remove control characters
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
+      .replace(/`/g, ""); // Remove backticks
   };
 
   const inProgress = !["done", "failed"].includes(run.status);
@@ -467,20 +490,33 @@ function RunResult({
         </div>
       )}
 
-      <div className="flex justify-end gap-2">
-        <button 
-          onClick={() => onDownload(run.variants?.[selectedVariantIndex]?.id, "docx")}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Download DOCX
-        </button>
-        <button 
-          onClick={() => onDownload(run.variants?.[selectedVariantIndex]?.id, "pdf")}
-          className="inline-flex items-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
-        >
-          Download PDF
-        </button>
-      </div>
+      {run.status === "done" && run.variants?.length > 0 && (
+        <div className="flex justify-end gap-2">
+          <button 
+            onClick={() => onDownload(run.variants?.[selectedVariantIndex]?.id, "docx")}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Download DOCX
+          </button>
+          <button 
+            onClick={() => onDownload(run.variants?.[selectedVariantIndex]?.id, "pdf")}
+            className="inline-flex items-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+          >
+            Download PDF
+          </button>
+        </div>
+      )}
+      {run.status === "failed" && (
+        <div className="flex justify-end gap-2">
+          <button 
+            onClick={onRetry}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </div>
   );
 }

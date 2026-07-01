@@ -24,6 +24,8 @@ def sanitize_text(text: str | None) -> str:
     text = re.sub(r"[\u00A0\u2000-\u200A\u202F\u205F\u3000]", " ", text)
     # Remove control characters
     text = re.sub(r"[\u0000-\u001F\u007F-\u009F]", "", text)
+    # Remove backticks
+    text = text.replace("`", "")
     return text
 
 
