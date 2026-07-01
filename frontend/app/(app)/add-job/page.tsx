@@ -181,12 +181,28 @@ export default function AddJobPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Location</label>
-                  <input
+                  <select
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Bengaluru"
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
+                  >
+                    <option value="">Select a location</option>
+                    <option value="Bengaluru">Bengaluru</option>
+                    <option value="Mumbai">Mumbai</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Hyderabad">Hyderabad</option>
+                    <option value="Chennai">Chennai</option>
+                    <option value="Pune">Pune</option>
+                    <option value="Kolkata">Kolkata</option>
+                    <option value="Ahmedabad">Ahmedabad</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Surat">Surat</option>
+                    <option value="Noida">Noida</option>
+                    <option value="Gurugram">Gurugram</option>
+                    <option value="Coimbatore">Coimbatore</option>
+                    <option value="Vadodara">Vadodara</option>
+                    <option value="Indore">Indore</option>
+                  </select>
                 </div>
               </div>
 

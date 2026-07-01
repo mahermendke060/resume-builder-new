@@ -26,6 +26,10 @@ def sanitize_text(text: str | None) -> str:
     text = re.sub(r"[\u0000-\u001F\u007F-\u009F]", "", text)
     # Remove backticks
     text = text.replace("`", "")
+    # Trim whitespace
+    text = text.strip()
+    # Remove any leading/trailing non-alphanumeric characters (for emails/links)
+    text = re.sub(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", text)
     return text
 
 

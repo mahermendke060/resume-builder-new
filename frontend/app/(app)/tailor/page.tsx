@@ -309,7 +309,9 @@ function RunResult({
       .replace(/[\u2026]/g, "...") // Replace ellipsis
       .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ") // Replace all space variants
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
-      .replace(/`/g, ""); // Remove backticks
+      .replace(/`/g, "") // Remove backticks
+      .trim() // Trim whitespace
+      .replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, ""); // Remove any leading/trailing non-alphanumeric characters (for emails/links)
   };
 
   const inProgress = !["done", "failed"].includes(run.status);
