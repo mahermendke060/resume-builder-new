@@ -1,9 +1,0 @@
-pandas
-sentence-transformers
-faiss-cpu
-tqdm
-google-generativeai
-python-dotenv
-fastapi
-uvicorn
-numpy
