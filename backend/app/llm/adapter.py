@@ -64,7 +64,8 @@ class LLMAdapter:
     async def complete(self, system: str, user: str, temperature: float = 0.2) -> str:
         if not self.api_key:
             raise LLMError("OPENROUTER_API_KEY is not configured.")
-        print("LLM call starting, model:", self.model)
+        truncated_key = self.api_key[:8] + "..." if len(self.api_key) > 8 else "..."
+        print("LLM call starting, model:", self.model, "- using API key starting with:", truncated_key)
         payload = {
             "model": self.model,
             "temperature": temperature,
