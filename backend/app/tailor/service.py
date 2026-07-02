@@ -60,11 +60,29 @@ async def process_run(run_id: uuid.UUID, llm: LLMAdapter) -> None:
         print("Got resume:", resume.id)
         jd = jobs_service.get_job_description(db, run.job_id)
         print("Got job description, parsed_json exists?", jd.parsed_json is not None)
+        print("JD raw text length:", len(jd.raw_text))
+        print("JD raw text snippet:", jd.raw_text[:200])
         if jd is None:
             raise AppError("Job has no description to tailor against.", code="no_jd")
 
-        # 1) JD requirement extraction (reuse cached parse if present)
-        if not jd.parsed_json:
+        # Check if existing parsed_json is effectively empty and needs re-parsing
+        def is_parsed_jd_empty(parsed):
+            if not parsed:
+                return True
+            return (
+                parsed.get("title") is None
+                and len(parsed.get("must_have_skills", [])) == 0
+                and len(parsed.get("nice_to_have_skills", [])) == 0
+                and len(parsed.get("tools", [])) == 0
+                and len(parsed.get("responsibilities", [])) == 0
+                and len(parsed.get("keywords", [])) == 0
+                and parsed.get("seniority") is None
+                and parsed.get("min_years_experience") is None
+            )
+        needs_reparse = is_parsed_jd_empty(jd.parsed_json)
+
+        # 1) JD requirement extraction (reuse cached parse if present and not empty)
+        if not jd.parsed_json or needs_reparse:
             print("Starting extract_jd_requirements, JD text length:", len(jd.raw_text))
             if len(jd.raw_text) < 100:
                 print("JD too short, using fallback parsed json")
@@ -82,7 +100,7 @@ async def process_run(run_id: uuid.UUID, llm: LLMAdapter) -> None:
                 print("Calling extract_jd_requirements...")
                 try:
                     jd.parsed_json = await extract_jd_requirements(llm, jd.raw_text)
-                    print("extract_jd_requirements complete!")
+                    print("extract_jd_requirements complete! Result:", jd.parsed_json)
                 except Exception as e:
                     print("extract_jd_requirements failed, using fallback:", e)
                     jd.parsed_json = {
