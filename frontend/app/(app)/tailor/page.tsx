@@ -303,6 +303,7 @@ function RunResult({
   const sanitizeText = (text: string) => {
     if (!text) return text;
     return text
+      .replace(/<[^>]+>/g, "") // Remove HTML tags first
       .replace(/[\u2011\u2012\u2013\u2014\u2015]/g, "-") // Replace all dash variants
       .replace(/[\u2018\u2019\u201A\u201B]/g, "'") // Replace smart single quotes
       .replace(/[\u201C\u201D\u201E\u201F]/g, '"') // Replace smart double quotes
@@ -311,7 +312,7 @@ function RunResult({
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
       .replace(/`/g, "") // Remove backticks
       .trim() // Trim whitespace
-      .replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, ""); // Remove any leading/trailing non-alphanumeric characters (for emails/links)
+      .replace(/^[^a-zA-Z0-9@]+|[^a-zA-Z0-9.]+$/g, ""); // Remove any leading/trailing non-alphanumeric characters (for emails/links)
   };
 
   const inProgress = !["done", "failed"].includes(run.status);

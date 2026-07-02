@@ -9,6 +9,8 @@ def sanitize_text(text: str | None) -> str:
     if not text:
         return ""
     text = str(text)
+    # Remove HTML tags first
+    text = re.sub(r"<[^>]+>", "", text)
     # Replace all dash variants
     text = re.sub(r"[\u2011\u2012\u2013\u2014\u2015]", "-", text)
     # Replace smart single quotes
@@ -26,7 +28,7 @@ def sanitize_text(text: str | None) -> str:
     # Trim whitespace
     text = text.strip()
     # Remove any leading/trailing non-alphanumeric characters (for emails/links)
-    text = re.sub(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", text)
+    text = re.sub(r"^[^a-zA-Z0-9@]+|[^a-zA-Z0-9.]+$", "", text)
     return text
 
 
