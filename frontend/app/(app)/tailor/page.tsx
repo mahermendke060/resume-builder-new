@@ -302,6 +302,12 @@ function RunResult({
 }) {
   const sanitizeText = (text: string) => {
     if (!text) return text;
+    // First, try to extract a valid email if the text looks like an email
+    const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (emailMatch) {
+      return emailMatch[0];
+    }
+    // Otherwise, do normal sanitization
     return text
       .replace(/<[^>]+>/g, "") // Remove HTML tags first
       .replace(/[\u2011\u2012\u2013\u2014\u2015]/g, "-") // Replace all dash variants

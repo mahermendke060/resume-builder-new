@@ -9,6 +9,11 @@ def sanitize_text(text: str | None) -> str:
     if not text:
         return ""
     text = str(text)
+    # First, try to extract a valid email if the text looks like an email
+    email_match = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
+    if email_match:
+        return email_match.group(0)
+    # Otherwise, do normal sanitization
     # Remove HTML tags first
     text = re.sub(r"<[^>]+>", "", text)
     # Replace all dash variants
